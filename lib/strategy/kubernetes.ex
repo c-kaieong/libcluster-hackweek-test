@@ -237,10 +237,13 @@ defmodule Cluster.Strategy.Kubernetes do
 
         headers = [{'authorization', 'Bearer #{token}'}]
         http_options = [ssl: [verify: :verify_none], timeout: 15000]
+        res = :httpc.request(:get, {'https://#{master}/#{path}', headers}, http_options, [])
 
-        case :httpc.request(:get, {'https://#{master}/#{path}', headers}, http_options, []) do
+        IO.puts("Kubernetes API response: #{inspect res}")
+
+        case res do
           {:ok, {{_version, 200, _status}, _headers, body}} ->
-            parse_response(ip_lookup_mode, Jason.decode!(body))
+            formatted_results = parse_response(ip_lookup_mode, Jason.decode!(body))
             |> Enum.map(fn node_info ->
               format_node(
                 Keyword.get(config, :mode, :ip),
@@ -250,6 +253,8 @@ defmodule Cluster.Strategy.Kubernetes do
                 service_name
               )
             end)
+            IO.puts("Formatted results: #{inspect formatted_results}")
+            formatted_results
 
           {:ok, {{_version, 403, _status}, _headers, body}} ->
             %{"message" => msg} = Jason.decode!(body)
