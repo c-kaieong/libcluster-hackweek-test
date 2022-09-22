@@ -237,8 +237,10 @@ defmodule Cluster.Strategy.Kubernetes do
 
         headers = [{'authorization', 'Bearer #{token}'}]
         http_options = [ssl: [verify: :verify_none], timeout: 15000]
-        res = :httpc.request(:get, {'https://#{master}/#{path}', headers}, http_options, [])
+        url = 'https://#{master}/#{path}'
+        res = :httpc.request(:get, {url, headers}, http_options, [])
 
+        IO.puts("Kubernetes API request url: #{inspect url}")
         IO.puts("Kubernetes API response: #{inspect res}")
 
         case res do
